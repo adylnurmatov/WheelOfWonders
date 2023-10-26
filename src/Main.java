@@ -1,9 +1,8 @@
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Objects;
+import java.util.HashSet;
 import java.util.Scanner;
-
 
 public class Main {
     public static String wordToGuess = wheelword();
@@ -11,17 +10,17 @@ public class Main {
     public static int wordlen = wordToGuess.length();
     public static int maxpoints = wordlen * 100;
     public static int midpoints = maxpoints / 2;
-    public static int pointPerLetter = 100;
+    public static int pointPerLetter = 150;
     public static String winner = "";
     public static String wordToMode = wordToGuess;
     public static String description = describeWords();
-
-
     public static String hiddenword = hideTheWord();
 
     public static void main(String[] args) {
         playersMoves();
-        System.out.println("you win " + winner);
+        System.out.println("↓ ↓ ↓ You win ↓ ↓ ↓");
+        System.out.println("(☞⌐▀͡ ͜ʖ͡▀ )☞" + winner);
+        System.out.println();
     }
     private static ArrayList<String> inputAndShufflePlayers(){
         ArrayList<String> players = new ArrayList<>();
@@ -66,53 +65,63 @@ public class Main {
         ArrayList<String> players0 = inputAndShufflePlayers();
         int[] pointsTable = createPointsTable(players0);
         String[] players = new String[players0.size()];
+        HashSet<String> inputedsymbols = new HashSet<>();
+        inputedsymbols.add(".");
         players0.toArray(players);
         boolean isHaveMove = true;
         while(isHaveMove){
-            if(isPlayerHaveMidPoint(pointsTable,players)){
-                for (int i = 0; i < players.length; i++) {
-                    if(!players[i].equals("delete")){
-                        System.out.println(description);
-                        System.out.println(hiddenword);
-                        System.out.println(wordToMode);
-                        System.out.println("Enter the " + wordToGuess.length() + " symbols");
-                        System.out.println(players[i]);
-                        String word = openWord();
-                        if (word.equals(wordToGuess)) {
-                            winner = players[i];
-                            return;
-                        }
+            for (int i = 0; i < players.length; i++) {
+                System.out.println(description);
+                System.out.println(hiddenword);
+                System.out.println(wordToMode);
+                if(isThisPlayerHaveMove(players, i)){
+                    System.out.println("Now the move is for - " + players[i]);
+                    System.out.println("You have " + pointsTable[i] + "/" + midpoints);
+                    String letterFromPlayer = inputLetter();
+                    while(inputedsymbols.contains(letterFromPlayer)){
+                        letterFromPlayer = inputLetter();
+                        inputedsymbols.add(letterFromPlayer);
                     }
-                }
-                isHaveMove = false;
-            }else{
-                for (int i = 0; i < players.length; i++) {
-                    System.out.println(description);
-                    System.out.println(hiddenword);
-                    System.out.println(wordToMode);
-                    if(isThisPlayerHaveMove(players, i)){
-                        System.out.println("Now the move is for - " + players[i]);
-                        System.out.println("You have " + pointsTable[i] + "/" + midpoints);
-                        String letterFromPlayer = inputLetter();
-                        if(letterFromPlayer.length() == 1 && isContainthisLetter(letterFromPlayer)){
-                            pointsTable[i] += givePoint();
-                            hiddenword = openLetter(letterFromPlayer);
-                        }
-                        else if(letterFromPlayer.length() == wordToGuess.length()){
-                            if(isEqualToWord(letterFromPlayer)){
-                                System.out.println(wordToGuess);
-                                System.out.println("you win");
-                                winner = players[i];
-                                isHaveMove = false;
-                                break;
-                            }else{
-                                players[i] = "delete";
+                    if(letterFromPlayer.length() == 1 && isContainthisLetter(letterFromPlayer)){
+                        pointsTable[i] += givePoint();
+                        hiddenword = openLetter(letterFromPlayer);
+                        if(isPlayerHaveMidPoint(pointsTable,players)){
+                            for (int j = 0; j < players.length; j++) {
+                                if(!players[j].equals("delete")){
+                                    System.out.println(description);
+                                    System.out.println(hiddenword);
+                                    System.out.println(wordToMode);
+                                    System.out.println("Enter the " + wordToGuess.length() + " symbols");
+                                    System.out.println(players[j]);
+                                    String word = openWord();
+                                    if (word.equals(wordToGuess)) {
+                                        winner = players[j];
+                                        break;
+                                    }
+                                    else{
+                                        players[j] = "delete";
+                                    }
+                                }
                             }
-                        }
-                        else{
-                            System.out.println("Wrong");
+                            isHaveMove = false;
+                            break;
                         }
                     }
+                    else if(letterFromPlayer.length() == wordToGuess.length()){
+                        if(isEqualToWord(letterFromPlayer)){
+                            System.out.println(wordToGuess);
+                            winner = players[i];
+                            isHaveMove = false;
+                            break;
+                        }else{
+                            players[i] = "delete";
+                        }
+                    }
+                    else{
+                        System.out.println("Wrong");
+                        System.out.println("ಥ‿ಥ");
+                    }
+
                 }
             }
         }
@@ -171,8 +180,11 @@ public class Main {
         String letter = null;
         while (isnotCorrectLen) {
             letter = input.nextLine();
-            if(letter.length() == 1 || letter.length() == wordToGuess.length()){
+            if((letter.length() == 1 || letter.length() == wordToGuess.length()) && isAlpha(letter)){
                 isnotCorrectLen = false;
+            }
+            else{
+                System.out.println("Enter symbols or whole word");
             }
         }
         return letter;
@@ -191,5 +203,20 @@ public class Main {
     }
     private static boolean isThisPlayerHaveMove(String[] players, int i){
         return players[i]!= "delete";
+    }
+    private static boolean isAlpha(String letter)
+    {
+        if (letter == null) {
+            return false;
+        }
+
+        for (int i = 0; i < letter.length(); i++)
+        {
+            char c = letter.charAt(i);
+            if (!(c >= 'A' && c <= 'Z') && !(c >= 'a' && c <= 'z')) {
+                return false;
+            }
+        }
+        return true;
     }
 }
